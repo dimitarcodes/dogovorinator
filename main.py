@@ -1,12 +1,17 @@
+
 import tkinter
 from tkinter import ttk
 from src.controller import AppController
 from src.model import DogovorinatorModel
 from src.db import DogovorinatorDatabase
+
+from src.logger import DogovLogger
 import sv_ttk
 
 def main():
     
+    log = DogovLogger.get_logger()
+    log.info("Starting Dogovorinator")
     app = tkinter.Tk()
     sv_ttk.set_theme("light")  # Set the theme to light
     app.title("Генератор на трудови договори")
