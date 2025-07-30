@@ -1,10 +1,17 @@
 import tkinter as tk
 from tkinter import ttk
+from src.views.abstract_view import AbstractView
+from src.logger import DogovLogger
 
-class MainFrame:
-    def __init__(self,parent):
-        self.frame = ttk.Frame(parent,padding='3 3 12 12')
-        self.frame.grid(column=0, row=0)
+log = DogovLogger.get_logger()
+
+class TesterView(AbstractView):
+    
+    def _init_logic(self):
+        pass
+
+    def _build_gui(self):
+        self.main_frame.grid(column=0, row=0)
 
         self.mRRed = ttk.Style()
         self.mRBlue = ttk.Style()
@@ -23,13 +30,13 @@ class MainFrame:
         self.mGreen.configure("mGreen.TFrame",background="#149B5F")
 
 
-        self.toolRibbon    = ttk.Frame(self.frame, style='mRRed.TFrame',borderwidth=4)
-        self.subtoolRibbon = ttk.Frame(self.frame, style='mRBlue.TFrame',borderwidth=4)
-        self.titleFrame    = ttk.Frame(self.frame, style='mPurple.TFrame',borderwidth=4)
-        self.contentFrame  = ttk.Frame(self.frame, style='mPink.TFrame',borderwidth=4)
-        self.optionRibbon  = ttk.Frame(self.frame, style='mSCyan.TFrame',borderwidth=4)
-        self.statusFrame   = ttk.Frame(self.frame, style='mVYellow.TFrame',borderwidth=4)
-        self.infoFrame     = ttk.Frame(self.frame, style='mGreen.TFrame',borderwidth=4)
+        self.toolRibbon    = ttk.Frame(self.main_frame, style='mRRed.TFrame',borderwidth=4)
+        self.subtoolRibbon = ttk.Frame(self.main_frame, style='mRBlue.TFrame',borderwidth=4)
+        self.titleFrame    = ttk.Frame(self.main_frame, style='mPurple.TFrame',borderwidth=4)
+        self.contentFrame  = ttk.Frame(self.main_frame, style='mPink.TFrame',borderwidth=4)
+        self.optionRibbon  = ttk.Frame(self.main_frame, style='mSCyan.TFrame',borderwidth=4)
+        self.statusFrame   = ttk.Frame(self.main_frame, style='mVYellow.TFrame',borderwidth=4)
+        self.infoFrame     = ttk.Frame(self.main_frame, style='mGreen.TFrame',borderwidth=4)
 
         self.toolRibbon.grid(column=0,row=0)
         self.subtoolRibbon.grid(column=0,row=1)
@@ -46,8 +53,14 @@ class MainFrame:
         self.test2.pack()
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("test")
+    
+    class DummyController:
+        pass
+    dc = DummyController()
 
-    main = MainFrame(root)
+    root = tk.Tk()
+    root.geometry("800x600")
+    root.title("Fill Out Contract Form")
+    app = TesterView(root, dc) 
+    app.show()
     root.mainloop()

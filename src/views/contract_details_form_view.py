@@ -3,13 +3,17 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, font
 from tkcalendar import DateEntry
 
-class filloutContractFormView:
-    def __init__(self, root: tk.Tk):
-        self.root = root
-        
-        # Main container
-        self.main_frame = ttk.Frame(self.root, padding="10")
-        
+from src.views.abstract_view import AbstractView
+from src.logger import DogovLogger
+
+log = DogovLogger.get_logger()
+
+class ContractDetailsFormView(AbstractView):
+    
+    def _init_logic(self):
+        pass
+
+    def _build_gui(self):
         # Title
         self.title_label = ttk.Label(self.main_frame, text="Попълнете нужните данни")
         
@@ -44,27 +48,8 @@ class filloutContractFormView:
         # Navigation buttons
         # self.back_button = ttk.Button(self.nav_frame, text="Назад" ) #, command=self.go_back)
         # self.start_button = ttk.Button(self.nav_frame, text="Начало") #, command=self.go_to_start)
-        self.next_button = ttk.Button(self.nav_frame, text="Напред", command=self.go_next, padding="5") 
+        self.next_button = ttk.Button(self.nav_frame, text="Напред", command=self._set_employee_data, padding="5") 
 
-        self.hide()
-
-    def collect_employee_data(self):
-        employee_data = {}
-        for label, entry in self.employee_details_frame_list:
-            field_name = label.cget("text")
-            employee_data[field_name] = entry.get()
-        return employee_data
-    
-    def go_next(self):
-        self.controller.set_employee_data(self.collect_employee_data())
-        self.controller.next_step()
-
-    def set_controller(self, controller):
-        self.controller = controller
-
-    def show(self):
-
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
         self.title_label.pack(pady=(0, 20))
         self.employee_details_frame.pack(fill=tk.BOTH, pady=(0, 20))
         for label, entry in self.employee_details_frame_list:
@@ -73,21 +58,31 @@ class filloutContractFormView:
         self.nav_frame.pack(fill="x", pady=(20, 0),side="bottom")
         self.next_button.pack(side="right", padx=(10, 0))
 
-    def hide(self):
-        # pass
-        self.main_frame.pack_forget()
+
+    def collect_employee_data(self):
+        employee_data = {}
+        for label, entry in self.employee_details_frame_list:
+            field_name = label.cget("text")
+            employee_data[field_name] = entry.get()
+        return employee_data
+
+    def _set_employee_data(self):
+        self.controller.set_employee_data(self.collect_employee_data())
+        self.controller.next_step()
 
 
 if __name__ == "__main__":
+
+    class DummyController:
+        pass
+    dc = DummyController()
+    
+    dc.set_employee_data = lambda x: log.info(f"Employee data set: {x}")
+    dc.next_step = lambda: log.info("Next step called")
+
     root = tk.Tk()
-
-    # root.tk.call("source", "assets/theme/light.tcl")
-    # style = ttk.Style(root)
-    # # style.theme_use('light') 
-    # root.tk.call("set_theme", "light")
     root.geometry("800x600")
-
     root.title("Fill Out Contract Form")
-    app = filloutContractFormView(root)
+    app = ContractDetailsFormView(root, dc) 
     app.show()
     root.mainloop()
