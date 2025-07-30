@@ -19,15 +19,12 @@ class DogovorinatorModel:
     
     def set_selected_company(self, company):
         self.selected_company = company
-        print(f"Selected company set to: {company}")
 
     def set_selected_contract_type(self, contract_type):
         self.selected_contract_type = contract_type
-        print(f"Selected contract type set to: {contract_type}")
 
     def set_employee_data(self, employee_data):
         self.employee_data = employee_data
-        print(f"Employee data set to: {employee_data}")
 
 if __name__ == "__main__":
     from src.db import DogovorinatorDatabase
