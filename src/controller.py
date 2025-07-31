@@ -1,17 +1,24 @@
+import tkinter
+from tkinter import ttk
+import sv_ttk
+
 from src.logger import DogovLogger
-from src.views.select_company_view import SelectCompanyView
-from src.views.select_contract_type_view import SelectContractTypeView
-from src.views.review_submissions_view import ReviewSubmissionsView
-from src.views.contract_details_form_view import ContractDetailsFormView
+from src.views import SelectCompanyView, SelectContractTypeView, ReviewSubmissionsView, ContractDetailsFormView
 
 log = DogovLogger.get_logger()
 class AppController():
 
-    def __init__(self, model, root):
+    def __init__(self):
+        self.app = tkinter.Tk()
+        sv_ttk.set_theme("light")  # Set the theme to light
         
-        self.model = model
-        self.root = root
-        
+        self.app.title("Генератор на трудови договори")
+        self.app.geometry("800x600")
+
+        # Initialize MVC components
+        databaseController = DogovorinatorDatabase()
+        model = DogovorinatorModel(databaseController)  
+
         self.current_view = 0
 
         self.views = [
@@ -27,6 +34,9 @@ class AppController():
 
         self.show_view(self.current_view)
     
+    def run(self):
+        self.app.mainloop()
+
     def get_companies(self):
         return self.model.get_companies()
     
