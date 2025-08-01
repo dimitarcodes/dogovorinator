@@ -5,11 +5,9 @@ from pathlib import Path
 class DogovorinatorDatabase:
     _instance = None
 
-    def __new__(cls, db_path="data/db/app.db"):
+    def __new__(cls, db_path="data/dogovorinator.db"):
         if cls._instance is None:
             cls._instance = super(DogovorinatorDatabase, cls).__new__(cls)
-            cls._instance.connection = sqlite3.connect(db_path)
-            cls._instance.connection.row_factory = sqlite3.Row
         return cls._instance
 
     def get_connection(self):
@@ -20,10 +18,11 @@ class DogovorinatorDatabase:
             self.connection.close()
             DogovorinatorDatabase._instance = None
 
-    def __init__(self, db_name='data/dogovorinator.db'):
+    def __init__(self, db_path='data/dogovorinator.db'):
         # ensure file path exists
-        self.init_database(db_name)
-        self.connection = sqlite3.connect(db_name)
+        self.init_database(db_path)
+        self.connection = sqlite3.connect(db_path)
+        self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
         self.init_tables()
 
@@ -43,7 +42,3 @@ class DogovorinatorDatabase:
             )
         ''')
         self.connection.commit()
-
-    
-    def close(self):
-        self.connection.close()

@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+from typing import Optional
 
 ### current company model used as development placeholder
 @dataclass
 class Company:
-    id: int
     name: str
     vat_number: str
     address: str
+    id: Optional[int] = None # database will assign this automatically
 
 
 ### This will be the proper company model to be implemented later
