@@ -10,7 +10,10 @@ def company_model():
     db = DogovorinatorDatabase('/data/testbase.db')
     yield CompanyModel(db)
     db.close()
-    os.remove('/data/testbase.db')  # Clean up the test database file
+    try:
+        os.remove('/data/testbase.db')  # Clean up the test database file
+    except FileNotFoundError:
+        pass
 
 def test_add_company(company_model):
     """

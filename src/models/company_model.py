@@ -1,7 +1,7 @@
 from src.models.entities import Company
 from src.logger import DogovLogger
 
-log = DogovLogger().get_logger()
+log = DogovLogger.get_logger()
 
 class CompanyModel:
     def __init__(self, db):
