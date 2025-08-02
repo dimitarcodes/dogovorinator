@@ -3,8 +3,8 @@ from tkinter import ttk
 import sv_ttk
 
 from src.logger import DogovLogger
-from src.views import SelectCompanyView, SelectContractTypeView, ReviewSubmissionsView, ContractDetailsFormView
-from src.models import CompanyModel, DocumentModel, EmployeeModel, Company, Employee
+from src.views import *
+from src.models import *
 from src.db import DogovorinatorDatabase
 
 log = DogovLogger.get_logger()
@@ -46,15 +46,32 @@ class AppController():
         if company.id is None:
             raise ValueError("Company must have an id to be updated.")
         
-        # Update the company in the database
-        # self.CompanyModel.remove_company(company)
-        # self.CompanyModel.add_company(company)
         self.CompanyModel.edit_company(company)
+        self.views[0].reload_treeview()
         log.info(f"Company updated: {company}")
         return company
 
+    def destroy_company_form(self):
+        """ Destroys the company form popup if it exists. """
+        if self.company_form_view:
+            del self.company_form_view
+            log.info("Company form popup destroyed.")
+        else:
+            log.warning("No company form popup to destroy.")
+
+    def add_company_dialog(self):
+        """ Opens a dialog to add a new company. """
+        log.info("Opening company form popup for adding a new company.")
+        self.company_form_view = CompanyFormPopupView(self.app, self)
+
+    def edit_company_dialog(self, company: Company):
+        """ Opens a dialog to edit an existing company. """
+        log.info(f"Opening company form popup for editing company: {company}")
+        self.company_form_view = CompanyFormPopupView(self.app, self, company)
+
     def add_company(self, company: Company) -> Company:
         self.CompanyModel.add_company(company)
+        self.views[0].reload_treeview()  # Reload the treeview in the SelectCompanyView
         log.info(f"Company added: {company}")
         return company
     
@@ -62,6 +79,7 @@ class AppController():
         try:
             self.CompanyModel.remove_company(company)
             log.info(f"Company removed: {company}")
+            self.views[0].reload_treeview()  # Reload the treeview in the SelectCompanyView
             return True
         except Exception as e:
             log.error(f"Error removing company: {e}")
