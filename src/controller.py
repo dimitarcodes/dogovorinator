@@ -108,9 +108,12 @@ class AppController():
         log_msg = f'Selected company set to: {company}'
         log.info(log_msg)
     
+    def get_available_templates(self):
+        return self.DocumentModel.templates
+    
     def set_selected_contract_template(self, contract_template):
         self.DocumentModel.selected_template = contract_template
-        log.info(f"Selected contract template set to: {contract_template}")
+        log.info(f"Selected contract template set to: {self.DocumentModel.selected_template}")
 
     def set_employee_data(self, employee_data):
         self.EmployeeModel.selected_employee = Employee(**employee_data)

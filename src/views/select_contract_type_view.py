@@ -14,15 +14,11 @@ class SelectContractTypeView(AbstractView):
         # Companies frame
         self.contracts_type_frame = ttk.LabelFrame(self.main_frame, text="Типове договори", padding="10")
 
-        self.contract_type1_button = ttk.Button(self.contracts_type_frame, text="Тип 1", padding="5", command=lambda: self._select_contract(1))
-        self.contract_type2_button = ttk.Button(self.contracts_type_frame, text="Тип 2", padding="5", command=lambda: self._select_contract(2))
-        self.contract_type3_button = ttk.Button(self.contracts_type_frame, text="Тип 3", padding="5", command=lambda: self._select_contract(3))
-
         # Navigation frame
         self.nav_frame = ttk.Frame(self.main_frame)
         # Navigation buttons
-        self.back_button = ttk.Button(self.nav_frame, text="Назад" ) #, command=self.go_back)
-        self.start_button = ttk.Button(self.nav_frame, text="Начало") #, command=self.go_to_start)
+        self.back_button = ttk.Button(self.nav_frame, text="Назад", command=self.controller.prev_step)
+        # self.start_button = ttk.Button(self.nav_frame, text="Начало") #, command=self.controller.start)
 
 
         self.main_frame.pack(fill=tk.BOTH, expand=True)
@@ -30,14 +26,15 @@ class SelectContractTypeView(AbstractView):
 
         self.contracts_type_frame.pack(fill=tk.BOTH, pady=(0, 20))
 
-        self.contract_type1_button.pack(side=tk.TOP, pady=(10, 0))
-        self.contract_type2_button.pack(side=tk.TOP, pady=(10, 0))
-        self.contract_type3_button.pack(side=tk.TOP, pady=(10, 0))
+        buttons = {}
+        for template in self.controller.get_available_templates():
+            buttons[template] = ttk.Button(self.contracts_type_frame, text=template, command=lambda t=template: self._select_contract(t))
+            buttons[template].pack(side=tk.TOP, pady=(10, 0))
         
         self.nav_frame.pack(fill="x", pady=(20, 0),side="bottom")
-        self.back_button.pack(side="left")
-        self.start_button.pack(side="left", padx=(10, 0))
+        self.back_button.pack(side="left",)
+        # self.start_button.pack(side="left", padx=(10, 0))
 
     def _select_contract(self, contract_type):
-        self.controller.set_selected_contract_type(contract_type)
+        self.controller.set_selected_contract_template(contract_type)
         self.controller.next_step()

@@ -46,7 +46,7 @@ class ContractDetailsFormView(AbstractView):
         # Navigation frame
         self.nav_frame = ttk.Frame(self.main_frame)
         # Navigation buttons
-        # self.back_button = ttk.Button(self.nav_frame, text="Назад" ) #, command=self.go_back)
+        self.back_button = ttk.Button(self.nav_frame, text="Назад" , command=self.controller.prev_step)
         # self.start_button = ttk.Button(self.nav_frame, text="Начало") #, command=self.go_to_start)
         self.next_button = ttk.Button(self.nav_frame, text="Напред", command=self._set_employee_data, padding="5") 
 
@@ -57,7 +57,7 @@ class ContractDetailsFormView(AbstractView):
             entry.pack(fill=tk.X, pady=(0, 10))
         self.nav_frame.pack(fill="x", pady=(20, 0),side="bottom")
         self.next_button.pack(side="right", padx=(10, 0))
-
+        self.back_button.pack(side="left")
 
     def collect_employee_data(self):
         employee_data = {}
