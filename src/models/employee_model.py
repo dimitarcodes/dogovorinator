@@ -1,7 +1,7 @@
 from src.models.entities import Employee
 from src.logger import DogovLogger
 
-log = DogovLogger().get_logger()
+log = DogovLogger.get_logger()
 class EmployeeModel:
     def __init__(self):
         self.employees = []
