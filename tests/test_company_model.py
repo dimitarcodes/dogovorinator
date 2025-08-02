@@ -4,14 +4,17 @@ import pytest
 from src.db import DogovorinatorDatabase
 from src.models.company_model import CompanyModel
 from src.models.entities import Company
+import tempfile, shutil
 
 @pytest.fixture(scope='session')
 def company_model():
-    db = DogovorinatorDatabase('/data/testbase.db')
+    temp_dir = tempfile.mkdtemp()
+    db_path = os.path.join(temp_dir, 'test.db')
+    db = DogovorinatorDatabase(db_path)
     yield CompanyModel(db)
     db.close()
     try:
-        os.remove('/data/testbase.db')  # Clean up the test database file
+        shutil.rmtree(temp_dir)  # Clean up the test database file
     except FileNotFoundError:
         pass
 
