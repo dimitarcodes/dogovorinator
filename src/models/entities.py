@@ -11,7 +11,7 @@ class Company:
     
     @classmethod
     def get_fields(cls):
-        return [field.name for field in fields(cls) if field.name != 'id']
+        return {field.name: field.metadata["label"] for field in fields(cls) if field.name != 'id'}
 @dataclass
 class Employee:
     name: str
