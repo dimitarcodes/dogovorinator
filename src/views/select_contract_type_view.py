@@ -1,8 +1,10 @@
+from src.views import AbstractView
+from src.logger import DogovLogger
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, font
-from src.views.abstract_view import AbstractView
 
+log = DogovLogger.get_logger()
 class SelectContractTypeView(AbstractView):
 
     def _build_gui(self):

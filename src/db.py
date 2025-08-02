@@ -3,10 +3,26 @@ import os
 from pathlib import Path
 
 class DogovorinatorDatabase:
-    def __init__(self, db_name='data/dogovorinator.db'):
+    _instance = None
+
+    def __new__(cls, db_path="data/dogovorinator.db"):
+        if cls._instance is None:
+            cls._instance = super(DogovorinatorDatabase, cls).__new__(cls)
+        return cls._instance
+
+    def get_connection(self):
+        return self.connection
+
+    def close(self):
+        if self.connection:
+            self.connection.close()
+            DogovorinatorDatabase._instance = None
+
+    def __init__(self, db_path='data/dogovorinator.db'):
         # ensure file path exists
-        self.init_database(db_name)
-        self.connection = sqlite3.connect(db_name)
+        self.init_database(db_path)
+        self.connection = sqlite3.connect(db_path)
+        self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
         self.init_tables()
 
@@ -26,25 +42,3 @@ class DogovorinatorDatabase:
             )
         ''')
         self.connection.commit()
-
-    def insert_example_entry(self, name='ПРИМЕРНА КОМПАНИЯ ЕООД', vat_number='BG123456789', address='София, България'):
-        self.insert_company(name=name, vat_number=vat_number, address=address)
-
-    def remove_example_entry(self):
-        self.cursor.execute('DELETE FROM companies WHERE name = ?', ('ПРИМЕРНА КОМПАНИЯ ЕООД',))
-        self.connection.commit()
-
-    def insert_company(self, name, vat_number, address):
-        self.cursor.execute('''
-            INSERT INTO companies (name, vat_number, address)
-            VALUES (?, ?, ?)
-        ''', (name, vat_number, address))
-        self.connection.commit()
-    
-    def fetch_all_companies(self):
-        self.cursor.execute('SELECT * FROM companies')
-        companies = self.cursor.fetchall()
-        return [{'id': row[0], 'name': row[1], 'vat_number': row[2], 'address': row[3]} for row in companies]
-
-    def close(self):
-        self.connection.close()

@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, font
 from tkcalendar import DateEntry
 
-from src.views.abstract_view import AbstractView
+from src.views import AbstractView
 from src.logger import DogovLogger
 
 log = DogovLogger.get_logger()

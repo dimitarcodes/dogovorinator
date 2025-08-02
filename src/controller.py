@@ -1,35 +1,90 @@
+import tkinter
+from tkinter import ttk
+import sv_ttk
+
 from src.logger import DogovLogger
-from src.views.select_company_view import SelectCompanyView
-from src.views.select_contract_type_view import SelectContractTypeView
-from src.views.review_submissions_view import ReviewSubmissionsView
-from src.views.contract_details_form_view import ContractDetailsFormView
+from src.views import *
+from src.models import *
+from src.db import DogovorinatorDatabase
 
 log = DogovLogger.get_logger()
 class AppController():
 
-    def __init__(self, model, root):
+    def __init__(self):
+        self.app = tkinter.Tk()
+        sv_ttk.set_theme("light")  # Set the theme to light
         
-        self.model = model
-        self.root = root
-        
+        self.app.title("Генератор на трудови договори")
+        self.app.geometry("800x600")
+
+        # Initialize MVC components
+        self.db = DogovorinatorDatabase()
+        self.CompanyModel = CompanyModel(self.db)
+        self.DocumentModel = DocumentModel(templates_path="data/document_templates")
+        self.EmployeeModel = EmployeeModel()
+
         self.current_view = 0
 
         self.views = [
             # StartPage(root),,
-            SelectCompanyView(root, self),
-            SelectContractTypeView(root, self),
-            ContractDetailsFormView(root, self),
-            ReviewSubmissionsView(root, self)
+            SelectCompanyView(self.app, self),
+            SelectContractTypeView(self.app, self),
+            ContractDetailsFormView(self.app, self),
+            ReviewSubmissionsView(self.app, self)
         ]
-
-        # for view in self.views:
-        #     view.controller = self
-
+        
         self.show_view(self.current_view)
     
+    def run(self):
+        self.app.mainloop()
+
     def get_companies(self):
-        return self.model.get_companies()
+        return self.CompanyModel.get_companies()
     
+    def update_company(self, company: Company):
+        """ Update an existing company in the database. """
+        if company.id is None:
+            raise ValueError("Company must have an id to be updated.")
+        
+        self.CompanyModel.edit_company(company)
+        self.views[0].reload_treeview()
+        log.info(f"Company updated: {company}")
+        return company
+
+    def destroy_company_form(self):
+        """ Destroys the company form popup if it exists. """
+        if self.company_form_view:
+            del self.company_form_view
+            log.info("Company form popup destroyed.")
+        else:
+            log.warning("No company form popup to destroy.")
+
+    def add_company_dialog(self):
+        """ Opens a dialog to add a new company. """
+        log.info("Opening company form popup for adding a new company.")
+        self.company_form_view = CompanyFormPopupView(self.app, self)
+
+    def edit_company_dialog(self, company: Company):
+        """ Opens a dialog to edit an existing company. """
+        log.info(f"Opening company form popup for editing company: {company}")
+        self.company_form_view = CompanyFormPopupView(self.app, self, company)
+
+    def add_company(self, company: Company) -> Company:
+        self.CompanyModel.add_company(company)
+        self.views[0].reload_treeview()  # Reload the treeview in the SelectCompanyView
+        log.info(f"Company added: {company}")
+        return company
+    
+    def remove_company(self, company: Company):
+        try:
+            self.CompanyModel.remove_company(company)
+            log.info(f"Company removed: {company}")
+            self.views[0].reload_treeview()  # Reload the treeview in the SelectCompanyView
+            return True
+        except Exception as e:
+            log.error(f"Error removing company: {e}")
+            return False
+        
     def show_view(self, requested_view_number:int):
         
         log_msg = f'hiding: {[i for i,_ in enumerate(self.views) if i!=requested_view_number]}'
@@ -49,14 +104,13 @@ class AppController():
         self.show_view(self.current_view-1)
     
     def set_selected_company(self, company):
-        self.model.set_selected_company(company)
-
+        self.CompanyModel.selected_company = company
         log_msg = f'Selected company set to: {company}'
         log.info(log_msg)
     
-    def set_selected_contract_type(self, contract_type):
-        self.model.set_selected_contract_type(contract_type)
-        log.info(f"Selected contract type set to: {contract_type}")
-    
+    def set_selected_contract_template(self, contract_template):
+        self.DocumentModel.selected_template = contract_template
+        log.info(f"Selected contract template set to: {contract_template}")
+
     def set_employee_data(self, employee_data):
-        self.model.set_employee_data(employee_data)
+        self.EmployeeModel.selected_employee = Employee(**employee_data)
