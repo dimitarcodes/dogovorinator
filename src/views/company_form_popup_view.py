@@ -4,7 +4,6 @@ from src.models.entities import Company
 from src.logger import DogovLogger
 log = DogovLogger.get_logger()
 
-
 class CompanyFormPopupView():
 
     def __init__(self, root, controller, company: Company|None = None): 
@@ -13,9 +12,6 @@ class CompanyFormPopupView():
         self.company = company
         self.mode = "edit" if company else "add"
         self._build_gui()
-
-
-        
         
     def _build_gui(self):
         self.popup = tk.Toplevel(self._root)
