@@ -15,7 +15,6 @@ pluggy==1.6.0
 Pygments==2.19.2
 pytest==8.4.1
 python-docx==1.2.0
-pywin32==311
 six==1.17.0
 sv_ttk==2.6.1
 tkcalendar==1.6.1
