@@ -5,7 +5,7 @@ class DocumentModel:
     def __init__(self, templates_path="data/document_templates"):
         self.templates_path = templates_path
         self.templates = self.scan_templates()
-        self.doc = None # docxtrpl Document object
+        self.doc = None # docxtpl Document object
         self.doc_vars = []
 
     def scan_templates(self):
