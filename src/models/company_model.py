@@ -1,40 +1,61 @@
 from src.models.entities import Company
+from src.logger import DogovLogger
+
+log = DogovLogger().get_logger()
+
 class CompanyModel:
     def __init__(self, db):
         self.db = db
         self.connection = self.db.get_connection()
         self.cursor = self.connection.cursor()
 
-    def create_example_entry(self, company = Company( 
-                                                name='ПРИМЕРНА КОМПАНИЯ ЕООД', 
-                                                vat_number='BG123456789', 
-                                                address='София, България'
-                                                )
-                                            ):
-        self.insert_company(company)
-
-    def remove_example_entry(self):
-        self.cursor.execute('DELETE FROM companies WHERE name = ?', 
-                            ('ПРИМЕРНА КОМПАНИЯ ЕООД',))
-        self.connection.commit()
-
     def remove_company(self, company: Company):
-        self.remove_company_by_id(company.id)
-
-    def remove_company_by_id(self, company_id : int):
-        self.cursor.execute('DELETE FROM companies WHERE id = ?',
-                            (company_id,))
+        """ Remove a company by its instance.
+        Removals work by id, so if no id is provided an exception will be raised.
+        """
+        # assert there is an id
+        if company.id is None:
+            raise ValueError("Company must have an id to be removed.")
+        # remove by id
+        self.cursor.execute('DELETE FROM companies WHERE id = ?', (company.id,))
         self.connection.commit()
         
-    def insert_company(self, company: Company): 
+    def add_company(self, company: Company) -> Company: 
         self.cursor.execute('''
             INSERT INTO companies (name, vat_number, address)
             VALUES (?, ?, ?)
         ''', (company.name, company.vat_number, company.address))
         self.connection.commit()
-    
-    def get_all_companies(self) -> list[Company]:
+
+        # Get the last inserted id
+        company.id = self.cursor.lastrowid
+        # Note: this augments the original company instance with the id
+        # returning is not necessary but is done for convenience
+        return company
+
+    def edit_company(self, company: Company) -> Company:
+        """ Edit an existing company in the database. """
+        if company.id is None:
+            raise ValueError("Company must have an id to be edited.")
+        
+        self.cursor.execute('''
+            UPDATE companies
+            SET name = ?, vat_number = ?, address = ?
+            WHERE id = ?
+        ''', (company.name, company.vat_number, company.address, company.id))
+        self.connection.commit()
+        
+        return company
+
+    def get_companies(self) -> list[Company]:
         self.cursor.execute('SELECT * FROM companies')
         companies_rows = self.cursor.fetchall()
-        # return [[{'id': row[0], 'name': row[1], 'vat_number': row[2], 'address': row[3]} for row in companies]]
         return [Company(**row) for row in companies_rows]
+    
+    @property
+    def selected_company(self) -> Company:
+        return self._selected_company
+
+    @selected_company.setter
+    def selected_company(self, company: Company):
+        self._selected_company = company

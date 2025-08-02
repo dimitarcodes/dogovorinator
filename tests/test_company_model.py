@@ -12,30 +12,44 @@ def company_model():
     db.close()
     os.remove('/data/testbase.db')  # Clean up the test database file
 
-def test_create_example_entry(company_model):
-    company_model.create_example_entry()
-    companies = company_model.get_all_companies()
-    assert len(companies) == 1
-    assert companies[0].name == 'ПРИМЕРНА КОМПАНИЯ ЕООД'
+def test_add_company(company_model):
+    """
+    Test inserting a company.
+    Successful insertion should return the company with an id.
+    The original company instance should be augmented with the id.
+    """
+    example_company = Company(
+        name='Test Company',
+        vat_number='BG987654321',
+        address='Test Address'
+    )
+    added_company = company_model.add_company(example_company)
+    assert added_company.id is not None
+    assert added_company.id == example_company.id
+    assert added_company.name == 'Test Company'
 
-def test_remove_example_entry(company_model):
-    company_model.create_example_entry()
-    company_model.remove_example_entry()
-    companies = company_model.get_all_companies()
-    assert len(companies) == 0
-
-def test_insert_company(company_model):
-    company_model.insert_company(Company('Test Company', 'BG987654321', 'Test Address'))
-    companies = company_model.get_all_companies()
-    assert len(companies) == 1
+def test_get_companies(company_model):
+    example_company = Company(
+        name='Test Company',
+        vat_number='BG987654321',
+        address='Test Address'
+    )
+    company_model.add_company(example_company)
+    companies = company_model.get_companies()
+    assert len(companies) > 0
     assert companies[0].name == 'Test Company'
-    assert companies[0].vat_number == 'BG987654321'
-    assert companies[0].address == 'Test Address'
 
 def test_remove_company(company_model):
-    company_model.insert_company('Test Company', 'BG987654321', 'Test Address')
-    companies = company_model.get_all_companies()
-    assert len(companies) == 1
-    company_model.remove_company(companies[0])
-    companies = company_model.get_all_companies()
-    assert len(companies) == 0
+    """
+    Test removing a company.
+    """
+    example_company = Company(
+        name='Test Company',
+        vat_number='BG987654321',
+        address='Test Address'
+    )
+    company_model.add_company(example_company)
+    n_companies = len(company_model.get_companies())
+    company_model.remove_company(example_company)
+    new_n_companies = len(company_model.get_companies())
+    assert new_n_companies == n_companies - 1

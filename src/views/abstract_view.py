@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 class AbstractView(ABC):
     def __init__(self, root :  tk.Tk, controller):
 
+        self._root = root
         self.main_frame = ttk.Frame(root, padding = 10)
         self._controller = controller
         
