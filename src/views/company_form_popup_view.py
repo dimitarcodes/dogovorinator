@@ -40,10 +40,10 @@ class CompanyFormPopupView():
         self.company_frame.pack(fill=tk.BOTH, pady=(0, 10))
 
         self.company_form = {}
-        for field in Company.get_fields():
-            
+        for field, label in Company.get_fields().items():
+
             # set the widget's name for easy access later
-            label = ttk.Label(self.company_frame, text=field)
+            label = ttk.Label(self.company_frame, text=label)
             entry = ttk.Entry(self.company_frame)
             self.company_form[field] = entry
 
@@ -78,7 +78,7 @@ class CompanyFormPopupView():
         for form_field in self.company_form:
             input_value = self.company_form[form_field].get().strip()
             if not input_value:
-                self._invalid_input_message(empty_input_field=form_field)
+                self._invalid_input_message(empty_input_field=Company.get_fields()[form_field])
                 return None
             else:
                 data[form_field] = input_value
