@@ -26,10 +26,10 @@ class SelectContractTypeView(AbstractView):
         
         # Contract type buttons
         self.contract_type1_button = QPushButton("Постоянен трудов договор")
-        self.contract_type1_button.clicked.connect(lambda: self._select_contract("permanent"))
+        self.contract_type1_button.clicked.connect(lambda: self._select_contract("template"))
         
         self.contract_type2_button = QPushButton("Срочен трудов договор")
-        self.contract_type2_button.clicked.connect(lambda: self._select_contract("temporary"))
+        self.contract_type2_button.clicked.connect(lambda: self._select_contract("template"))
         
         # Add buttons to layout with some spacing
         contracts_layout.addWidget(self.contract_type1_button)

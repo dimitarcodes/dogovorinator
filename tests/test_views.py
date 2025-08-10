@@ -10,7 +10,7 @@ from src.views.select_contract_type_view import SelectContractTypeView
 from src.views.contract_details_form_view import ContractDetailsFormView
 from src.views.contract_details_form_scrollable_view import ContractDetailsFormScrollableView
 from src.views.review_submissions_view import ReviewSubmissionsView
-from src.models.entities import Company
+from src.models.company_model import Company
 
 # Create QApplication instance for testing (required for Qt widgets)
 @pytest.fixture(scope="session")

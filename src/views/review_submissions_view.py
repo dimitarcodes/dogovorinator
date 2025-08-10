@@ -70,19 +70,16 @@ class ReviewSubmissionsView(AbstractView):
         review_text = "=== ПРЕГЛЕД НА ДАННИТЕ ===\n\n"
         
         if company:
-            review_text += f"Фирма: {company.name}\n"
-            review_text += f"БУЛСТАТ: {company.vat_number}\n\n"
-        
+            for field, label in company.get_fields_with_labels().items():
+                review_text += f"{label}: {getattr(company, field, 'N/A')}\n"
+
         if contract_type:
             contract_type_name = "Постоянен трудов договор" if contract_type == "permanent" else "Срочен трудов договор"
             review_text += f"Тип договор: {contract_type_name}\n\n"
 
         if employee_data:
-            review_text += f"Име на служител: {employee_data['name']}\n"
-            review_text += f"ЕГН: {employee_data['egn']}\n"
-            review_text += f"Длъжност: {employee_data['position']}\n"
-            review_text += f"Заплата: {employee_data['salary']} лв.\n"
-            review_text += f"Дата на започване: {employee_data['start_date']}\n"
+            for k, v in employee_data.items():
+                review_text += f"{k}: {v}\n"
 
         self.review_text.setPlainText(review_text)
 

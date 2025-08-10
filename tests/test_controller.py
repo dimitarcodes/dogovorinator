@@ -6,7 +6,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtCore import Qt, QDate
 
 from src.controller import AppController
-from src.models.entities import Company
+from src.models.company_model import Company
 
 # Create QApplication instance for testing (required for Qt widgets)
 @pytest.fixture(scope="session")

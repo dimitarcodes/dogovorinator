@@ -1,4 +1,4 @@
-from src.models.entities import Company
+from src.models.company_model import Company
 from src.views.abstract_view import AbstractView
 from src.logger import DogovLogger
 
@@ -30,13 +30,13 @@ class SelectCompanyView(AbstractView):
         # Companies Table (QTableWidget instead of Treeview)
         self.companies_table = QTableWidget()
         self.companies_table.setColumnCount(2)
-        self.companies_table.setHorizontalHeaderLabels(["Име на фирмата", "БУЛСТАТ"])
+        self.companies_table.setHorizontalHeaderLabels(["БУЛСТАТ", "Име на фирмата"])
         
         # Configure table columns
         header = self.companies_table.horizontalHeader()
         # header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # ID column
-        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Name column stretches
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # VAT column
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents )  # BULSTAT column resize to contents + a bit of padding
+        header.setSectionResizeMode(1, QHeaderView.Stretch)  # Name column stretches to fill space
 
         # Set selection behavior
         self.companies_table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -96,15 +96,16 @@ class SelectCompanyView(AbstractView):
         
         for idx, company in enumerate(companies):
             # Add row data
-            id_item = QTableWidgetItem(str(idx))
-            name_item = QTableWidgetItem(company.name)
-            vat_item = QTableWidgetItem(company.vat_number)
+            # id_item = QTableWidgetItem(str(idx))
+            
+            bulstat_item = QTableWidgetItem(company.bulstat)
+            name_item = QTableWidgetItem(company.name_bg)
             
             # Set items in table
-            self.companies_table.setItem(idx, 0, name_item)
-            self.companies_table.setItem(idx, 1, vat_item)
+            self.companies_table.setItem(idx, 0, bulstat_item)
+            self.companies_table.setItem(idx, 1, name_item)
 
-            log.info(f"Company {company.name} added to table with row {idx}")
+            log.info(f"Company {company.name_bg} added to table with row {idx}")
     
     def reload_treeview(self):
         """Compatibility method name - calls reload_table"""
@@ -137,7 +138,7 @@ class SelectCompanyView(AbstractView):
             return
         
         # Confirm deletion
-        if self.ask_yes_no("Потвърждение", f"Сигурни ли сте, че искате да изтриете {selected_company.name}?"):
+        if self.ask_yes_no("Потвърждение", f"Сигурни ли сте, че искате да изтриете {selected_company.name_bg}?"):
             self.controller.remove_company(selected_company)
         
     def _edit_company(self):

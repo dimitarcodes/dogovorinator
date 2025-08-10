@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                                 QPushButton, QLineEdit, QFormLayout, QGroupBox,
                                 QMessageBox, QDialogButtonBox)
-from PySide6.QtCore import Qt
-from src.models.entities import Company
+from PySide6.QtCore import Qt, QSize
+from src.models.company_model import Company
 from src.logger import DogovLogger
 
 log = DogovLogger.get_logger()
@@ -15,7 +15,7 @@ class CompanyFormPopupView(QDialog):
         self.mode = "edit" if company else "add"
         
         self.setModal(True)  # Make it modal
-        self.setFixedSize(400, 300)
+        self.setMinimumSize(QSize(600, 300))
         self._build_gui()
         self._center_on_parent()
 
@@ -34,15 +34,15 @@ class CompanyFormPopupView(QDialog):
         
         # Create form fields
         self.company_form = {}
-        for field in Company.get_fields():
+        for field, label in Company.get_fields_with_labels().items():
             entry = QLineEdit()
             self.company_form[field] = entry
             
             # Set existing values if editing
             if self.company and hasattr(self.company, field):
-                entry.setText(str(getattr(self.company, field)))
+                entry.setText(label)
             
-            form_layout.addRow(f"{field}:", entry)
+            form_layout.addRow(f"{label}:", entry)
         
         # Button box for Save/Cancel
         button_box = QDialogButtonBox()

@@ -36,9 +36,13 @@ class DogovorinatorDatabase:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS companies (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                vat_number TEXT NOT NULL,
-                address TEXT NOT NULL
+                name_en TEXT NOT NULL,
+                name_bg TEXT NOT NULL,
+                bulstat TEXT NOT NULL,
+                address_en TEXT NOT NULL,
+                address_bg TEXT NOT NULL,
+                repr_en TEXT NOT NULL,
+                repr_bg TEXT NOT NULL
             )
         ''')
         self.connection.commit()

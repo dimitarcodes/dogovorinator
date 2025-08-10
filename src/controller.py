@@ -116,7 +116,7 @@ class AppController:
     def set_selected_company(self, company):
         """Set the selected company for contract generation"""
         self.selected_company = company
-        log.info(f"Selected company: {company.name}")
+        log.info(f"Selected company: {company.name_bg}")
 
     def get_selected_company(self):
         """Get the currently selected company"""
@@ -124,9 +124,15 @@ class AppController:
 
     def set_selected_contract_type(self, contract_type):
         """Set the selected contract type"""
+        self.DocumentModel.selected_template = contract_type
         self.selected_contract_type = contract_type
+        self.views[2].populate_forms()
+
         log.info(f"Selected contract type: {contract_type}")
 
+    def get_formvars(self):
+        return self.DocumentModel.get_document_vars_with_metadata()
+    
     def get_selected_contract_type(self):
         """Get the currently selected contract type"""
         return getattr(self, 'selected_contract_type', None)

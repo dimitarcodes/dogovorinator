@@ -6,7 +6,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtCore import Qt
 
 from src.views.company_form_popup_view import CompanyFormPopupView
-from src.models.entities import Company
+from src.models.company_model import Company
 
 # Create QApplication instance for testing (required for Qt widgets)
 @pytest.fixture(scope="session")
@@ -161,9 +161,9 @@ class TestCompanyFormPopupView:
                 # Should call controller's update_company method
                 mock_controller.update_company.assert_called_once()
                 # Check that company object was updated
-                assert company.name == "Updated Name"
-                assert company.vat_number == "987654321"
-                assert company.address == "Updated Address"
+                assert company.name_bg == "Updated Name"
+                assert company.bulstat == "987654321"
+                assert company.address_en == "Updated Address"
                 mock_accept.assert_called_once()
     
     def test_save_company_validation_failure(self, qapp, parent_widget, mock_controller):

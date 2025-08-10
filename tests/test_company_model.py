@@ -3,7 +3,7 @@ import os
 import pytest
 from src.db import DogovorinatorDatabase
 from src.models.company_model import CompanyModel
-from src.models.entities import Company
+from src.models.company_model import Company
 import tempfile, shutil
 
 @pytest.fixture(scope='session')
