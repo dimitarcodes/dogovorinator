@@ -23,11 +23,15 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.11"
+    - name: Install system dependencies for Qt and Pillow
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb libjpeg-dev zlib1g-dev libfreetype6-dev liblcms2-dev libopenjp2-7-dev libtiff5-dev libwebp-dev libgl1 libglx-mesa0 freeglut3-dev
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f reqs.txt ]; then pip install -r reqs.txt; fi
+        python -m pip install flake8 pytest pytest-qt pytest-cov
+        if [ -f reqs.txt ]; then python -m pip install -r reqs.txt; fi
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -36,4 +40,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
+        # Run tests with virtual display for Qt GUI testing
+        xvfb-run -a pytest --cov=src --cov-report=xml --cov-report=term-missing -v
+      env:
+        QT_QPA_PLATFORM: offscreen
+        QT_LOGGING_RULES: "*.debug=false"
+        DISPLAY: :99

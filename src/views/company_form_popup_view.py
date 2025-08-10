@@ -1,117 +1,112 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
+                                QPushButton, QLineEdit, QFormLayout, QGroupBox,
+                                QMessageBox, QDialogButtonBox)
+from PySide6.QtCore import Qt
 from src.models.entities import Company
 from src.logger import DogovLogger
+
 log = DogovLogger.get_logger()
 
-
-class CompanyFormPopupView():
-
-    def __init__(self, root, controller, company: Company|None = None): 
-        self._root = root
+class CompanyFormPopupView(QDialog):
+    def __init__(self, parent, controller, company: Company = None):
+        super().__init__(parent)
         self.controller = controller
         self.company = company
         self.mode = "edit" if company else "add"
+        
+        self.setModal(True)  # Make it modal
+        self.setFixedSize(400, 300)
         self._build_gui()
+        self._center_on_parent()
 
-
-        
-        
     def _build_gui(self):
-        self.popup = tk.Toplevel(self._root)
-        self.popup.geometry("400x300")
-        self._position_popup()
-
-        # ensure it appears on top and main window interactions are disabled
-        self.popup.transient(self._root)
-        self.popup.grab_set()
-        self._root.attributes("-disabled", True)
-        self.popup.protocol("WM_DELETE_WINDOW", lambda: self._on_close())
+        popup_title = "Редактиране на фирма" if self.mode == "edit" else "Добавяне на фирма"
+        self.setWindowTitle(popup_title)
         
-        popup_title = "Редактиране на фирма"
-        if self.mode == "add":
-            popup_title = "Добавяне на фирма"
-        self.popup.wm_title(popup_title)
-
-        self.main_frame = ttk.Frame(self.popup, padding=20)
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
-        # Company form
-        self.company_frame = ttk.LabelFrame(self.main_frame, text="Детайли на компанията", padding=20)
-        self.company_frame.pack(fill=tk.BOTH, pady=(0, 10))
-
+        # Main layout
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
+        
+        # Company form group
+        self.company_frame = QGroupBox("Детайли на компанията")
+        form_layout = QFormLayout()
+        self.company_frame.setLayout(form_layout)
+        
+        # Create form fields
         self.company_form = {}
         for field in Company.get_fields():
-            
-            # set the widget's name for easy access later
-            label = ttk.Label(self.company_frame, text=field)
-            entry = ttk.Entry(self.company_frame)
+            entry = QLineEdit()
             self.company_form[field] = entry
-
-            label.pack()
-            entry.pack()
-
+            
+            # Set existing values if editing
             if self.company and hasattr(self.company, field):
-                entry.insert(0, getattr(self.company, field))
+                entry.setText(str(getattr(self.company, field)))
+            
+            form_layout.addRow(f"{field}:", entry)
         
+        # Button box for Save/Cancel
+        button_box = QDialogButtonBox()
+        save_button = button_box.addButton("Запази", QDialogButtonBox.AcceptRole)
+        cancel_button = button_box.addButton("Отказ", QDialogButtonBox.RejectRole)
+        
+        save_button.clicked.connect(self._save_company)
+        cancel_button.clicked.connect(self.reject)
+        
+        # Add to main layout
+        main_layout.addWidget(self.company_frame)
+        main_layout.addWidget(button_box)
 
-        nav_frame = ttk.Frame(self.main_frame)
-        save_button = ttk.Button(nav_frame, 
-                    text="Запази", 
-                    command=lambda: self._save_company(self.company)
-                    )      
-        nav_frame.pack(fill=tk.X, pady=(10, 0))
-        save_button.pack(side=tk.RIGHT, padx=(0, 10))
-
-    def _position_popup(self):
-        x = self._root.winfo_x() + (self._root.winfo_width() // 2) - 200
-        y = self._root.winfo_y() + (self._root.winfo_height() // 2) - 150
-        self.popup.geometry(f"+{x}+{y}")
-    
-    def _on_close(self):
-        self._root.attributes("-disabled", False)
-        self.popup.destroy()
-        log.info("Company form closed without saving.")
-        self.controller.destroy_company_form()
+    def _center_on_parent(self):
+        """Center the dialog on the parent window"""
+        if self.parent():
+            parent_geometry = self.parent().geometry()
+            x = parent_geometry.x() + (parent_geometry.width() - self.width()) // 2
+            y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
+            self.move(x, y)
 
     def _validate_company_form(self):
+        """Validate form data and return company data dict"""
         data = {}
-        for form_field in self.company_form:
-            input_value = self.company_form[form_field].get().strip()
+        for form_field, entry in self.company_form.items():
+            input_value = entry.text().strip()
             if not input_value:
-                self._invalid_input_message(empty_input_field=form_field)
+                QMessageBox.warning(self, "Грешка", f"Полето '{form_field}' е задължително.")
                 return None
-            else:
-                data[form_field] = input_value
-        log.info(f"_validate_company_form | Collected company data: {data}")
+            data[form_field] = input_value
         return data
-    
-    def _invalid_input_message(self, empty_input_field):
-        self.popup.grab_release()
-        self.popup.attributes("-disabled", True)
-        messagebox.showwarning("Предупреждение", f"Моля, попълнете {empty_input_field}.")
-        self.popup.attributes("-disabled", False)
-        self.popup.grab_set()
 
-    def _save_company(self, company=None):
-        company_data = self._validate_company_form()
-        if not company_data:
+    def _save_company(self):
+        """Save the company data"""
+        data = self._validate_company_form()
+        if not data:
             return
         
-        log.info(f"_save_company | Saving company data: {company_data}")
+        try:
+            if self.mode == "add":
+                # Create new company
+                new_company = Company(**data)
+                self.controller.add_company(new_company)
+                log.info(f"Company added: {new_company}")
+            else:
+                # Update existing company
+                for field, value in data.items():
+                    setattr(self.company, field, value)
+                self.controller.update_company(self.company)
+                log.info(f"Company updated: {self.company}")
+            
+            self.accept()  # Close dialog with success
+            
+        except Exception as e:
+            log.error(f"Error saving company: {e}")
+            QMessageBox.critical(self, "Грешка", f"Грешка при запазването: {str(e)}")
 
-        # edit existing company
-        if self.mode == 'edit':
-            # Update existing company
-            for field, value in company_data.items():
-                setattr(company, field, value)
-            edited_company = self.controller.update_company(company)
-        elif self.mode == 'add':
-            # Create new company
-            new_company = Company(**company_data)
-            new_company = self.controller.add_company(new_company)
-        else:
-            raise Exception("mode of company form is neither edit nor add")
-        
-        self._root.attributes("-disabled", False)
-        self.popup.destroy()
+    def reject(self):
+        """Handle dialog cancellation"""
+        log.info("Company form cancelled.")
         self.controller.destroy_company_form()
+        super().reject()
+
+    def accept(self):
+        """Handle dialog acceptance"""
+        self.controller.destroy_company_form()
+        super().accept()

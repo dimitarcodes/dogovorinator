@@ -1,130 +1,129 @@
 from src.models.entities import Company
-from src.views import AbstractView
+from src.views.abstract_view import AbstractView
 from src.logger import DogovLogger
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, 
+                              QTableWidgetItem, QPushButton, QHeaderView, 
+                              QMessageBox, QGroupBox, QFrame)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 log = DogovLogger.get_logger()
 
 class SelectCompanyView(AbstractView):
 
     def _build_gui(self):
+        # Main layout is already set in AbstractQtView
+        
         # View Title - Instructions
-        self.title_label = ttk.Label(self.main_frame, 
-                                        text="Изберете фирма или въведете нова",
-                                        font=("century schoolbook l", 18, 'bold')
-                                    )
+        self.title_label = QLabel("Изберете фирма или въведете нова")
+        title_font = QFont("Century Schoolbook L", 18)
+        title_font.setBold(True)
+        self.title_label.setFont(title_font)
+        self.title_label.setAlignment(Qt.AlignCenter)
         
-        s = ttk.Style()
-        s.configure('Red.TLabelframe.Label', font=('courier', 15, 'bold'))
+        # Companies frame (GroupBox in Qt)
+        self.companies_frame = QGroupBox("Съществуващи компании")
+        companies_layout = QVBoxLayout()
+        self.companies_frame.setLayout(companies_layout)
+        
+        # Companies Table (QTableWidget instead of Treeview)
+        self.companies_table = QTableWidget()
+        self.companies_table.setColumnCount(2)
+        self.companies_table.setHorizontalHeaderLabels(["Име на фирмата", "БУЛСТАТ"])
+        
+        # Configure table columns
+        header = self.companies_table.horizontalHeader()
+        # header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # ID column
+        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Name column stretches
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # VAT column
 
-        # Companies frame
-        self.companies_frame = ttk.LabelFrame(self.main_frame, 
-                                                text="Съществуващи компании",
-                                                padding="10",
-                                                style="Red.TLabelframe")
+        # Set selection behavior
+        self.companies_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.companies_table.setSelectionMode(QTableWidget.SingleSelection)
         
+        # Double-click to proceed
+        self.companies_table.itemDoubleClicked.connect(self._go_next)
         
-        # Companies Treeview
-        # Using Treeview for better column support
-        self.companies_treeview = ttk.Treeview(self.companies_frame,
-                                                columns=("id", "name", "vat_number"),
-                                                show='headings',
-                                                height=10)
+        # Button layout for company operations
+        company_buttons_layout = QHBoxLayout()
         
-        self.companies_treeview.heading("id", 
-                                        text="#",
-                                        command=lambda: self.sort_column(self.companies_treeview, "id", False))
+        self.del_company_button = QPushButton("Изтриване")
+        self.del_company_button.clicked.connect(self._del_company)
         
-        self.companies_treeview.heading("name", 
-                                        text="Име на фирмата", 
-                                        command=lambda: self.sort_column(self.companies_treeview, "name", False))
+        self.edit_company_button = QPushButton("Редактиране") 
+        self.edit_company_button.clicked.connect(self._edit_company)
         
-        self.companies_treeview.heading("vat_number", 
-                                        text="БУЛСТАТ",
-                                        command=lambda: self.sort_column(self.companies_treeview, "vat_number", False))
+        self.add_company_button = QPushButton("Добавяне на нова фирма")
+        self.add_company_button.clicked.connect(self._add_company)
         
-        self.companies_treeview.column("id", width=10, anchor="center")
-
-        # Companies edit and delete buttons
-        self.edit_company_button = ttk.Button(self.companies_frame,
-                                                text="Редактиране",
-                                                padding="5",
-                                                command=self._edit_company)
-
-        self.del_company_button = ttk.Button(self.companies_frame,
-                                                text="Изтриване", 
-                                                padding="5",
-                                                command=self._del_company) 
-        self.add_company_button = ttk.Button(self.companies_frame,
-                                                text="Добавяне на нова фирма",
-                                                padding="5",
-                                                command=self._add_company)
+        # Add buttons to layout
+        company_buttons_layout.addWidget(self.del_company_button)
+        company_buttons_layout.addWidget(self.edit_company_button)
+        company_buttons_layout.addStretch()  # Push next button to the right
+        company_buttons_layout.addWidget(self.add_company_button)
+        
+        # Add table and buttons to companies frame
+        companies_layout.addWidget(self.companies_table)
+        companies_layout.addLayout(company_buttons_layout)
         
         # Navigation frame
-        self.nav_frame = ttk.Frame(self.main_frame)
-        # Navigation buttons
-        self.next_button = ttk.Button(self.nav_frame,
-                                        text="Напред",
-                                        command=self._go_next,
-                                        padding="5") 
-
-
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
-        self.title_label.pack(pady=(0, 20))
-
-        self.companies_frame.pack(fill=tk.BOTH, pady=(0, 20))
-        self.companies_treeview.pack(fill=tk.BOTH, pady=(0, 10))
-        self.companies_treeview.bind("<Double-Button-1>", lambda _ : self._go_next())
-        self.del_company_button.pack(side="left", padx=(10, 0))
-        self.edit_company_button.pack(side="left", padx=(10, 0))
-        self.add_company_button.pack(side="right", padx=(10, 0))
-
-        self.next_button.pack(side="right", padx=(10, 0))        
-        self.nav_frame.pack(fill="x", pady=(20, 0),side="bottom")
-
-        self.reload_treeview()
-        self.companies_treeview.bind("<<TreeviewSelect>>", lambda e : log.info(f"selection output: {self.companies_treeview.selection()}"))
-
-
-    def reload_treeview(self):
-        # destroy all children
-        for item in self.companies_treeview.get_children():
-            self.companies_treeview.delete(item)
-
-        # repopulate with companies
-        for idx, company in enumerate(self.controller.get_companies()):
-            # visible stuff
-            vals = (str(idx + 1), company.name, company.vat_number)
-            # iid links it back to the companies list
-            item_id = self.companies_treeview.insert("", "end", values = vals, iid = idx)
-            log.info(f"Company {company.name} added to listbox with id {item_id}")
+        nav_layout = QHBoxLayout()
+        nav_layout.addStretch()  # Push button to the right
         
-    def sort_column(self, tree, col, reverse):
-        """
-        sort function for the treeview columns
-        """
-        data = [(tree.set(child, col), child) for child in tree.get_children('')]
-        # Sort the data based on the column
-        data.sort(reverse=reverse)
-        # Rearrange the items in the sorted order
-        for index, (val, child) in enumerate(data):
-            tree.move(child, '', index)
-        # Reverse the sort order for the next click
-        tree.heading(col, command=lambda: self.sort_column(tree, col, not reverse))
+        self.next_button = QPushButton("Напред")
+        self.next_button.clicked.connect(self._go_next)
+        nav_layout.addWidget(self.next_button)
+        
+        # Add all widgets to main layout
+        self.main_layout.addWidget(self.title_label)
+        self.main_layout.addWidget(self.companies_frame)
+        
+        # Add some spacing before navigation
+        nav_frame = QFrame()
+        nav_frame.setLayout(nav_layout)
+        self.main_layout.addWidget(nav_frame)
+        
+        # Load companies data
+        self.reload_table()
+
+    def reload_table(self):
+        """Reload the companies table with current data"""
+        self.companies_table.setRowCount(0)  # Clear existing rows
+        
+        companies = self.controller.get_companies()
+        self.companies_table.setRowCount(len(companies))
+        
+        for idx, company in enumerate(companies):
+            # Add row data
+            id_item = QTableWidgetItem(str(idx))
+            name_item = QTableWidgetItem(company.name)
+            vat_item = QTableWidgetItem(company.vat_number)
+            
+            # Set items in table
+            self.companies_table.setItem(idx, 0, name_item)
+            self.companies_table.setItem(idx, 1, vat_item)
+
+            log.info(f"Company {company.name} added to table with row {idx}")
+    
+    def reload_treeview(self):
+        """Compatibility method name - calls reload_table"""
+        self.reload_table()
 
     def _select_company(self, task="да продължите"):
-        selection = self.companies_treeview.selection()
-        if not selection:
-            messagebox.showwarning("Предупреждение", f"Моля, изберете фирма от списъка за {task}.")
-            return
-        log.info(f"selection: {selection}")
-        sel_idx = int(selection[0])
-        sel_company = self.controller.get_companies()[sel_idx]
-        return sel_company
+        """Get the currently selected company"""
+        current_row = self.companies_table.currentRow()
+        if current_row == -1:
+            self.show_warning("Предупреждение", f"Моля, изберете фирма от списъка за {task}.")
+            return None
+        
+        companies = self.controller.get_companies()
+        if current_row < len(companies):
+            return companies[current_row]
+        return None
 
     def _go_next(self):
+        """Handle next button click or double-click on table"""
         selected_company = self._select_company(task="да продължите")
         if not selected_company:
             return
@@ -132,16 +131,22 @@ class SelectCompanyView(AbstractView):
         self.controller.next_step()
 
     def _del_company(self):
+        """Handle delete company button click"""
         selected_company = self._select_company(task="изтриване")
         if not selected_company:
             return
-        self.controller.remove_company(selected_company)
+        
+        # Confirm deletion
+        if self.ask_yes_no("Потвърждение", f"Сигурни ли сте, че искате да изтриете {selected_company.name}?"):
+            self.controller.remove_company(selected_company)
         
     def _edit_company(self):
+        """Handle edit company button click"""
         selected_company = self._select_company(task="редактиране")
         if not selected_company:
             return
         self.controller.edit_company_dialog(selected_company)
     
     def _add_company(self):
+        """Handle add company button click"""
         self.controller.add_company_dialog()

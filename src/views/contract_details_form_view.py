@@ -1,88 +1,99 @@
-
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, font
-from tkcalendar import DateEntry
-
-from src.views import AbstractView
+from src.views.abstract_view import AbstractView
 from src.logger import DogovLogger
+
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
+                              QLineEdit, QFormLayout, QDateEdit, QComboBox,
+                              QGroupBox, QFrame, QTextEdit, QSpinBox)
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QFont
 
 log = DogovLogger.get_logger()
 
 class ContractDetailsFormView(AbstractView):
-    
-    def _init_logic(self):
-        pass
 
     def _build_gui(self):
         # Title
-        self.title_label = ttk.Label(self.main_frame, text="Попълнете нужните данни")
+        self.title_label = QLabel("Въведете данни за договора:")
+        title_font = QFont()
+        title_font.setPointSize(16)
+        title_font.setBold(True)
+        self.title_label.setFont(title_font)
+        self.title_label.setAlignment(Qt.AlignCenter)
         
         # Form frame
-        self.employee_details_frame = ttk.LabelFrame(self.main_frame, text="Данни за служителя", padding="10")
+        self.form_frame = QGroupBox("Детайли на договора")
+        form_layout = QFormLayout()
+        self.form_frame.setLayout(form_layout)
         
-        self.employee_details_frame_list = []
-
-        fields = [
-            "Име на служителя",
-            "ID на служителя",
-            "Длъжност",
-            "Дата на започване",
-            "Дата на приключване"
-        ]
-        colors = [
-            "lightblue", "lightgreen", "lightyellow", "lightcoral", "lightcyan"
-        ]
-
-        for i, field in enumerate(fields):
-
-            label = ttk.LabelFrame(self.employee_details_frame, text=f"{field}", padding="5")
-            if "Дата" in field:
-                entry = DateEntry(label, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern="dd-mm-yyyy")
-            else:
-                entry = ttk.Entry(label)
-            # label.pack(anchor="w")
-            self.employee_details_frame_list.append((label, entry))
+        # Employee details
+        self.employee_name_edit = QLineEdit()
+        self.employee_egn_edit = QLineEdit()
+        self.position_edit = QLineEdit()
+        self.salary_spinbox = QSpinBox()
+        self.salary_spinbox.setRange(0, 999999)
+        self.salary_spinbox.setSuffix(" лв.")
+        
+        self.start_date_edit = QDateEdit()
+        self.start_date_edit.setDate(QDate.currentDate())
+        self.start_date_edit.setCalendarPopup(True)
+        
+        # Add fields to form
+        form_layout.addRow("Име на служител:", self.employee_name_edit)
+        form_layout.addRow("ЕГН:", self.employee_egn_edit)
+        form_layout.addRow("Длъжност:", self.position_edit)
+        form_layout.addRow("Заплата:", self.salary_spinbox)
+        form_layout.addRow("Дата на започване:", self.start_date_edit)
         
         # Navigation frame
-        self.nav_frame = ttk.Frame(self.main_frame)
-        # Navigation buttons
-        # self.back_button = ttk.Button(self.nav_frame, text="Назад" ) #, command=self.go_back)
-        # self.start_button = ttk.Button(self.nav_frame, text="Начало") #, command=self.go_to_start)
-        self.next_button = ttk.Button(self.nav_frame, text="Напред", command=self._set_employee_data, padding="5") 
+        nav_layout = QHBoxLayout()
+        
+        self.back_button = QPushButton("Назад")
+        self.back_button.clicked.connect(self.controller.previous_step)
+        
+        self.start_button = QPushButton("Начало")
+        self.start_button.clicked.connect(self.controller.go_to_start)
+        
+        self.next_button = QPushButton("Напред")
+        self.next_button.clicked.connect(self._go_next)
+        
+        nav_layout.addWidget(self.back_button)
+        nav_layout.addWidget(self.start_button)
+        nav_layout.addStretch()
+        nav_layout.addWidget(self.next_button)
+        
+        nav_frame = QFrame()
+        nav_frame.setLayout(nav_layout)
+        
+        # Add all widgets to main layout
+        self.main_layout.addWidget(self.title_label)
+        self.main_layout.addWidget(self.form_frame)
+        self.main_layout.addWidget(nav_frame)
 
-        self.title_label.pack(pady=(0, 20))
-        self.employee_details_frame.pack(fill=tk.BOTH, pady=(0, 20))
-        for label, entry in self.employee_details_frame_list:
-            label.pack(fill=tk.X)
-            entry.pack(fill=tk.X, pady=(0, 10))
-        self.nav_frame.pack(fill="x", pady=(20, 0),side="bottom")
-        self.next_button.pack(side="right", padx=(10, 0))
+    def _go_next(self):
+        """Validate form and proceed to next step"""
+        # Basic validation
+        if not self.employee_name_edit.text().strip():
+            self.show_warning("Грешка", "Моля, въведете име на служителя.")
+            return
+            
+        if not self.employee_egn_edit.text().strip():
+            self.show_warning("Грешка", "Моля, въведете ЕГН.")
+            return
+            
+        if not self.position_edit.text().strip():
+            self.show_warning("Грешка", "Моля, въведете длъжност.")
+            return
+        
+        # Store form data (you might want to pass this to controller)
+        self.employee_data = {
+            'name': self.employee_name_edit.text().strip(),
+            'egn': self.employee_egn_edit.text().strip(),
+            'position': self.position_edit.text().strip(),
+            'salary': self.salary_spinbox.value(),
+            'start_date': self.start_date_edit.date().toPython()
+        }
 
-
-    def collect_employee_data(self):
-        employee_data = {}
-        for label, entry in self.employee_details_frame_list:
-            field_name = label.cget("text")
-            employee_data[field_name] = entry.get()
-        return employee_data
-
-    def _set_employee_data(self):
-        self.controller.set_employee_data(self.collect_employee_data())
+        self.controller.set_employee_data(self.employee_data)
+        
+        log.info(f"Employee data collected: {self.employee_data}")
         self.controller.next_step()
-
-
-if __name__ == "__main__":
-
-    class DummyController:
-        pass
-    dc = DummyController()
-    
-    dc.set_employee_data = lambda x: log.info(f"Employee data set: {x}")
-    dc.next_step = lambda: log.info("Next step called")
-
-    root = tk.Tk()
-    root.geometry("800x600")
-    root.title("Fill Out Contract Form")
-    app = ContractDetailsFormView(root, dc) 
-    app.show()
-    root.mainloop()
