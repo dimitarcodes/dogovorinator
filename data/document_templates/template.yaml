@@ -1,0 +1,142 @@
+template_title:  TEMPORARY CONTRACT
+vars:
+  #############################################################
+  ############### COMPANY VARIABLES ###########################
+  #############################################################
+  CMP_NAME:
+    hr_label: Име на фирмата
+    multilang: True
+    multilang_type: explicit
+
+  CMP_ADDR:
+    hr_label: Адрес на фирмата
+    multilang: True
+    multilang_type: explicit
+
+  CMP_BULSTAT:
+    hr_label: БУЛСТАТ на фирмата
+    multilang: False
+
+  CMP_REPR:
+    hr_label: Представляващо лице на фирмата
+    multilang: True
+    multilang_type: explicit
+
+  #############################################################
+  ############## EMPLOYEE VARIABLES ###########################
+  #############################################################
+  MPL_NAME:
+    hr_label: Име на служителя
+    multilang: True
+    multilang_type: explicit
+
+  MPL_CTZN:
+    hr_label: Гражданство на служителя
+    multilang: True
+    multilang_type: countryname
+
+  MPL_PPN:
+    hr_label: Номер на паспорта
+    multilang: False
+
+  MPL_PPID:
+    hr_label: Дата на издаване на паспорта
+    multilang: True
+    multilang_type: date
+
+  MPL_PPVD:
+    hr_label: Дата на изтичане на валидност на паспорта
+    multilang: True
+    multilang_type: date
+  
+  MPL_DOB:
+    hr_label: Дата на раждане на служителя
+    multilang: True
+    multilang_type: date
+  
+  MPL_IDN:
+    hr_label: ЛНЧ на служителя
+    multilang: False
+  
+  MPL_PPID:
+    hr_label: Номер на паспорта на служителя
+    multilang: False
+  
+  MPL_PPVD:
+    hr_label: Валидност на паспорта на служителя (до)
+    multilang: True
+    multilang_type: date
+  #############################################################
+  ############## CONTRACT VARIABLES ###########################
+  #############################################################
+
+  CON_NUM:
+    hr_label: Номер на договора
+    multilang: False
+
+  CON_DATE:
+    hr_label: Дата на договора
+    multilang: True
+    multilang_type: date
+
+  SIGN_DATE:
+    hr_label: Дата на подписване
+    multilang: True
+    multilang_type: date
+
+  SIGN_PLACE:
+    hr_label: Място на подписване
+    multilang: True
+    multilang_type: explicit
+    
+  CON_LEN:
+    hr_label: Продължителност на договора
+    multilang: True
+    multilang_type: months
+
+  CON_ST_DATE:
+    hr_label: Начална дата
+    multilang: True
+    multilang_type: date
+
+  CON_END_DATE:
+    hr_label: Крайна дата
+    multilang: True
+    multilang_type: date
+
+  CON_ST_WORK_DATE:
+    hr_label: Дата на постъване на работа
+    multilang: True
+    multilang_type: date
+
+  #############################################################
+  ################### JOB VARIABLES ###########################
+  #############################################################
+
+  JOB_POS:
+    hr_label: Длъжност
+    multilang: True
+    multilang_type: explicit
+
+  JOB_WORKPLACE:
+    hr_label: Място на работа
+    multilang: True
+    multilang_type: explicit
+
+  JOB_DEP:
+    hr_label: Отдел
+    multilang: True
+    multilang_type: explicit
+
+  JOB_SALARY_USD:
+    hr_label: Нетно възнаграждение в USD
+    multilang: False
+
+  JOB_SALARY_BGN:
+    hr_label: Брутно възнагражение в BGN
+    multilang: False
+
+  JOB_SALARY_BGN_WORDS:
+    hr_label: Брутно възнаграждение в BGN (с думи)
+    multilang: True
+    multilang_type: money_words
