@@ -2,11 +2,7 @@ from PySide6.QtWidgets import QStackedWidget, QMessageBox
 from PySide6.QtCore import Qt
 
 from src.logger import DogovLogger
-from src.views.select_company_view import SelectCompanyView
-from src.views.select_contract_type_view import SelectContractTypeView
-from src.views.contract_details_form_view import ContractDetailsFormView
-from src.views.contract_details_form_scrollable_view import ContractDetailsFormScrollableView
-from src.views.review_submissions_view import ReviewSubmissionsView
+from src.views import TemporaryContractView
 from src.models import *
 from src.db import DogovorinatorDatabase
 
@@ -27,10 +23,11 @@ class AppController:
 
         # Create views
         self.views = [
-            SelectCompanyView(self.stacked_widget, self),
-            SelectContractTypeView(self.stacked_widget, self),
-            ContractDetailsFormScrollableView(self.stacked_widget, self),
-            ReviewSubmissionsView(self.stacked_widget, self)
+            # SelectCompanyView(self.stacked_widget, self),
+            # SelectContractTypeView(self.stacked_widget, self),
+            # ContractDetailsFormScrollableView(self.stacked_widget, self),
+            # ReviewSubmissionsView(self.stacked_widget, self)
+            TemporaryContractView(self.stacked_widget, self)
         ]
         
         # Add views to stacked widget
