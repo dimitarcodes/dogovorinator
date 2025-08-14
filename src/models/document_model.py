@@ -1,6 +1,9 @@
 import os, sys, pathlib
 import docxtpl, yaml
 from src.models.company_model import Company
+from src.logger import DogovLogger
+
+log = DogovLogger.get_logger()
 
 class DocumentModel:
     def __init__(self, templates_path="data/document_templates"):
@@ -10,6 +13,7 @@ class DocumentModel:
         self._doc = None # docxtpl Document object
         self._doc_vars = [] # list of document variables
         self._doc_vars_metadata = {} # dict of document variables with metadata
+        self._entry_vars = {}
 
     def scan_templates(self):
         """
@@ -32,24 +36,6 @@ class DocumentModel:
         if not self._doc:
             raise ValueError("No template selected.")
         self._doc.save('RenderedContract.docx')
-
-    def get_document_vars(self, include_company: bool = False):
-        """
-        Returns the document variables that need to be filled.
-        If include_company is True, it will also include company fields.
-        """
-        if not self._doc_vars:
-            raise ValueError("No template selected or no variables found.")
-        
-        vars_to_fill = self._doc_vars.copy()
-        
-        if not include_company:
-            company_fields_to_exclude = Company.get_docvars()
-            for _, docvar in company_fields_to_exclude.items():
-                if docvar in vars_to_fill:
-                    vars_to_fill.remove(docvar)
-
-        return vars_to_fill
 
     def load_template(self, template: str):
         """
@@ -84,40 +70,49 @@ class DocumentModel:
                 self._doc_vars_metadata = yamldict['vars']
             
         
+    def set_company_data(self, company):
+        company_dict = {
+            "CMP_NAME_BG": company.name_bg,
+            "CMP_NAME_EN": company.name_en,
+            "CMP_BULSTAT": company.bulstat,
+            "CMP_ADDR_BG": company.address_bg,
+            "CMP_ADDR_EN": company.address_en,
+            "CMP_REPR_EN": company.repr_en,
+            "CMP_REPR_BG": company.repr_bg
+        }
+        self._entry_vars.update(company_dict)
 
-    def get_document_vars_with_metadata(self, include_company: bool = False) -> dict:
+    def validate_set_entry_vars(self, entered_vars: dict):
         """
-        Returns a dictionary of document variables with metadata.
-        If include_company is True, it will also include company fields.
+        Validates and sets the document variables.
         """
-        metadata = {}
+        if not vars:
+            raise ValueError("Document variables cannot be empty.")
 
-        if not self._doc_vars:
-            raise ValueError("No template selected or no variables found.")
-        
-        pretty_vars = {}
-
-        vars_to_fill = self.get_document_vars(include_company)
-        vars_metadata = self._doc_vars_metadata
-
-        for pvar, props in vars_metadata.items():
-            if props['multilang']:
-                for lang in ['BG', 'EN']:
-                    pvarlang = pvar + '_' + lang
-                    if pvarlang in vars_to_fill:
-                        pretty_vars[pvarlang] = {'hr_label' : props['hr_label'],
-                                                  'type' : props['multilang_type'],
-                                                  'concern': props['concern']}
+        for entered, value in entered_vars.items():
+            if entered in self._doc_vars_metadata.keys():
+                if self._doc_vars_metadata[entered]['multilang']:
+                    if self._doc_vars_metadata[entered]['multilang_type'] == 'date':
+                        bgkey = f"{entered}_BG"
+                        enkey = f"{entered}_EN"
+                        # format date for bulgarian locale
+                        bgdate = value.toString("dd.MM.yyyy")
+                        endate = value.toString("dd MMM yyyy")
+                        self._entry_vars[bgkey] = bgdate
+                        self._entry_vars[enkey] = endate
+                    else:
+                        log.info(f"multilang var {entered} passed without explicit multiple languages")
+                else:
+                    self._entry_vars[entered] = value
             else:
-                if pvar in vars_to_fill:
-                    pretty_vars[pvar] = {'hr_label' : props['hr_label'], 
-                                         'type' : 'string_probably',
-                                         'concern' : props['concern']
-                                         }
-        
-        return pretty_vars
+                self._entry_vars[entered] = value
+                    
 
-
+    def get_current_entry_vars(self) -> dict:
+        """
+        Returns the current entry variables.
+        """
+        return self._entry_vars
 
     @property
     def selected_template(self) -> str:

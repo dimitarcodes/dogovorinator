@@ -63,23 +63,26 @@ class ReviewSubmissionsView(AbstractView):
     def _update_review_text(self):
         """Update the review text with current selections"""
         log.info("Updating review text")
-        company = self.controller.get_selected_company()
-        contract_type = self.controller.get_selected_contract_type()
-        employee_data = self.controller.get_employee_data()
+
+        entered = self.controller.get_entered_vars()
 
         review_text = "=== ПРЕГЛЕД НА ДАННИТЕ ===\n\n"
         
-        if company:
-            for field, label in company.get_fields_with_labels().items():
-                review_text += f"{label}: {getattr(company, field, 'N/A')}\n"
+        review_text += "=== Данни на компанията ===\n"
 
-        if contract_type:
-            contract_type_name = "Постоянен трудов договор" if contract_type == "permanent" else "Срочен трудов договор"
-            review_text += f"Тип договор: {contract_type_name}\n\n"
+        review_text += f"Име на фирмата (БГ): {entered.get('CMP_NAME_BG', 'Не е въведено')}\n"
+        review_text += f"Име на фирмата (EN): {entered.get('CMP_NAME_EN', 'Не е въведено')}\n"
+        review_text += f"Адрес (БГ): {entered.get('CMP_ADDR_BG', 'Не е въведено')}\n"
+        review_text += f"Адрес (EN): {entered.get('CMP_ADDR_EN', 'Не е въведено')}\n"
+        review_text += f"БУЛСТАТ: {entered.get('CMP_BULSTAT', 'Не е въведено')}\n"
+        review_text += f"Представляващо лице (БГ): {entered.get('CMP_REPR_BG', 'Не е въведено')}\n"
+        review_text += f"Представляващо лице (EN): {entered.get('CMP_REPR_EN', 'Не е въведено')}\n"
 
-        if employee_data:
-            for k, v in employee_data.items():
-                review_text += f"{k}: {v}\n"
+        review_text += "\n=== Данни на служителя ===\n"
+        review_text += f"Име на служителя (БГ): {entered.get('MPL_NAME_BG', 'Не е въведено')}\n"
+        review_text += f"Име на служителя (EN): {entered.get('MPL_NAME_EN', 'Не е въведено')}\n"
+        review_text += f"Дата на раждане (БГ): {entered.get('MPL_DOB_BG', 'Не е въведено')}\n"
+        review_text += f"Дата на раждане (EN): {entered.get('MPL_DOB_EN', 'Не е въведено')}\n"
 
         self.review_text.setPlainText(review_text)
 

@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QStackedWidget, QMessageBox
 from PySide6.QtCore import Qt
 
 from src.logger import DogovLogger
-from src.views import TemporaryContractView
+from src.views import SelectCompanyView, SelectContractTypeView, TemporaryContractView, ReviewSubmissionsView
 from src.models import *
 from src.db import DogovorinatorDatabase
 
@@ -23,11 +23,10 @@ class AppController:
 
         # Create views
         self.views = [
-            # SelectCompanyView(self.stacked_widget, self),
-            # SelectContractTypeView(self.stacked_widget, self),
-            # ContractDetailsFormScrollableView(self.stacked_widget, self),
-            # ReviewSubmissionsView(self.stacked_widget, self)
-            TemporaryContractView(self.stacked_widget, self)
+            SelectCompanyView(self.stacked_widget, self),
+            SelectContractTypeView(self.stacked_widget, self),
+            TemporaryContractView(self.stacked_widget, self),
+            ReviewSubmissionsView(self.stacked_widget, self)
         ]
         
         # Add views to stacked widget
@@ -113,6 +112,7 @@ class AppController:
     def set_selected_company(self, company):
         """Set the selected company for contract generation"""
         self.selected_company = company
+        self.DocumentModel.set_company_data(company)
         log.info(f"Selected company: {company.name_bg}")
 
     def get_selected_company(self):
@@ -126,20 +126,23 @@ class AppController:
         self.views[2].populate_forms()
 
         log.info(f"Selected contract type: {contract_type}")
-
-    def get_formvars(self):
-        return self.DocumentModel.get_document_vars_with_metadata()
     
-    def get_selected_contract_type(self):
-        """Get the currently selected contract type"""
-        return getattr(self, 'selected_contract_type', None)
-
-    def set_employee_data(self, employee_data):
-        """Set the employee data for contract generation"""
-        self.employee_data = employee_data
-        log.info(f"Employee data set: {employee_data}")
-        self.views[3]._update_review_text()  # Update review view with new employee data
+    def get_all_countries(self):
+        return self.EmployeeModel.bg_all_countries_list
     
-    def get_employee_data(self):
-        """Get the currently set employee data"""
-        return getattr(self, 'employee_data', None)
+    def set_entered_vars(self, entered_vars: dict):
+        """
+        Validates and sets the document variables.
+        """
+        # log.info(f"Setting entered vars: {entered_vars}")
+        
+        if not entered_vars:
+            raise ValueError("Document variables cannot be empty.")
+        
+        self.DocumentModel.validate_set_entry_vars(entered_vars)
+
+        self.views[3]._update_review_text()
+        self.next_step()
+
+    def get_entered_vars(self):
+        return self.DocumentModel.get_current_entry_vars()
