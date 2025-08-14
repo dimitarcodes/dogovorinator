@@ -68,17 +68,7 @@ vars:
     hr_label: ЛНЧ на служителя
     multilang: False
     concern: employee
-  
-  MPL_PPID:
-    hr_label: Номер на паспорта на служителя
-    multilang: False
-    concern: employee
-  
-  MPL_PPVD:
-    hr_label: Валидност на паспорта на служителя (до)
-    multilang: True
-    multilang_type: date
-    concern: employee
+    
   #############################################################
   ############## CONTRACT VARIABLES ###########################
   #############################################################
